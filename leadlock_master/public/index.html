@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lead Cooldown</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <div class="mark" aria-hidden="true"></div>
+      <div>
+        <h1>Lead Cooldown</h1>
+        <p class="subtitle">
+          Set how long a lead stays hidden after it hits the call threshold.
+          This page never edits lead cells.
+        </p>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="field">
+        <label for="adminKey">Admin key</label>
+        <input id="adminKey" type="password" placeholder="Required" autocomplete="off" />
+        <p class="help">Stored only in your browser (local). Used to call the admin API.</p>
+      </div>
+
+      <div class="field">
+        <label for="leadSheet">Lead sheet</label>
+        <select id="leadSheet"></select>
+        <p class="help">Choose which lead tab to configure. Each tab can have a different cooldown.</p>
+      </div>
+
+      <div class="field">
+        <label for="holdMinutes">Cooldown minutes</label>
+        <div class="inline">
+          <input id="holdMinutes" type="number" min="1" max="1440" step="1" required />
+          <button id="saveBtn" type="button">Save</button>
+        </div>
+        <p class="help">Range: 1–1440 minutes.</p>
+      </div>
+
+      <div class="status">
+        <div class="pill" id="pill">Not connected</div>
+        <div class="kv">
+          <div class="kvRow"><span class="k">Current</span><span class="v" id="current">—</span></div>
+          <div class="kvRow"><span class="k">Last flush</span><span class="v" id="lastFlush">—</span></div>
+        </div>
+        <div class="actions">
+          <button id="refreshIndexBtn" class="ghost" type="button">Refresh index</button>
+          <button id="reloadBtn" class="ghost" type="button">Reload</button>
+        </div>
+      </div>
+
+      <div class="metrics" aria-label="Read-only metrics">
+        <div class="metricsHeader">
+          <h2 class="metricsTitle">Metrics</h2>
+          <div class="metricsSub">
+            <span class="k">Updated</span>
+            <span class="v" id="metricsUpdated">—</span>
+          </div>
+        </div>
+
+        <div class="metricsGrid">
+          <div class="mRow"><span class="k">Uptime</span><span class="v" id="mUptime">—</span></div>
+          <div class="mRow"><span class="k">Webhook events</span><span class="v" id="mWebhook">—</span></div>
+          <div class="mRow"><span class="k">Ended counted</span><span class="v" id="mEnded">—</span></div>
+          <div class="mRow"><span class="k">Pending phones</span><span class="v" id="mPending">—</span></div>
+          <div class="mRow"><span class="k">Queued</span><span class="v" id="mQueued">—</span></div>
+          <div class="mRow"><span class="k">Flushes</span><span class="v" id="mFlushes">—</span></div>
+          <div class="mRow"><span class="k">Unlock sweeps</span><span class="v" id="mUnlocks">—</span></div>
+          <div class="mRow"><span class="k">Last unlock</span><span class="v" id="mLastUnlock">—</span></div>
+          <div class="mRow"><span class="k">Last error</span><span class="v" id="mLastError">—</span></div>
+        </div>
+      </div>
+
+      <div id="msg" class="msg" role="status" aria-live="polite"></div>
+    </section>
+
+    <footer class="foot">
+      <small>
+        Tip: keep this service internal (VPN/SSO). The UI only changes the cooldown timer.
+      </small>
+    </footer>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
