@@ -1,19 +1,16 @@
-// src/sheets.js
+// google sheets layer.
 //
-// Google Sheets layer.
+//  - leads tabs are NEVER edited (no cell rewrites, no moving rows).
+//  - leads “disappear/reappear” is implemented ONLY via row hide/unhide.
+//  - all mutable state lives in Locks + Settings tabs.
 //
-// Guarantees:
-//  - Leads tabs are NEVER edited (no cell rewrites, no moving rows).
-//  - Leads “disappear/reappear” is implemented ONLY via row hide/unhide.
-//  - All mutable state lives in Locks + Settings tabs.
+// multi-sheet support:
+//  - set LEADS_SHEET_NAMES="Tab A,Tab B" (comma-separated)
+//  - if not set, falls back to LEADS_SHEET_NAME.
 //
-// Multi-sheet support:
-//  - Set LEADS_SHEET_NAMES="Tab A,Tab B" (comma-separated)
-//  - If not set, falls back to LEADS_SHEET_NAME.
-//
-// Per-sheet cooldown:
-//  - Settings supports either legacy global A2 (minutes)
-//  - Or a table in A:B with header: LeadSheet | HoldMinutes
+// per-sheet cooldown:
+//  - settings supports either legacy global A2 (minutes)
+//  - or a table in A:B with header: LeadSheet | HoldMinutes
 
 import { google } from "googleapis";
 import { LABEL_PHONE } from "./config.js";
@@ -82,9 +79,9 @@ export class SheetsStore {
   }
 
   /**
-   * Refresh the leads index.
-   * - If sheetName is provided, refresh only that tab.
-   * - Otherwise refresh all configured leads tabs.
+   * refresh the leads index.
+   * - if sheetName is provided, refresh only that tab.
+   * - otherwise refresh all configured leads tabs.
    */
   async refreshLeadsIndex(sheetName) {
     assertConfig();
@@ -94,7 +91,7 @@ export class SheetsStore {
       ? [sheetName]
       : this.leadsNames;
 
-    // Invalidate cache for any updated sheet ids (rare, but safe)
+    // invalidate cache for any updated sheet ids (rare, but safe)
     for (const n of targetSheets) this._sheetIdCache.delete(n);
 
     const ranges = targetSheets.map(n => `${n}!A:Z`);
@@ -105,7 +102,7 @@ export class SheetsStore {
       })
     );
 
-    // If refreshing a single sheet, first remove existing mappings for that sheet
+    // if refreshing a single sheet, first remove existing mappings for that sheet
     if (sheetName) {
       for (const [phone, loc] of state.leadsCache.phoneToLoc.entries()) {
         if (loc?.sheetName === sheetName) state.leadsCache.phoneToLoc.delete(phone);
@@ -126,7 +123,7 @@ export class SheetsStore {
       const headerMap = new Map();
       header.forEach((h, i) => headerMap.set(String(h).trim(), i));
 
-      // Save a header map for the first sheet (useful for debugging)
+      // save header map for the first sheet (god tier debugging)
       if (!state.leadsCache.headerMap.size) state.leadsCache.headerMap = headerMap;
 
       const phoneCol = headerMap.get(LABEL_PHONE);
@@ -138,7 +135,7 @@ export class SheetsStore {
         const rowIndex1 = r + 1;
         const phone = normalizePhone(values[r]?.[phoneCol]);
         if (!phone) continue;
-        // First sheet in configured order wins if duplicates exist.
+        // first sheet in configured order wins if duplicates exist.
         if (!state.leadsCache.phoneToLoc.has(phone)) {
           state.leadsCache.phoneToLoc.set(phone, { sheetName: sheet, rowIndex1 });
         }
@@ -154,9 +151,9 @@ export class SheetsStore {
   }
 
   /**
-   * Settings formats supported:
-   *  - Legacy global: Settings!A2 = minutes
-   *  - Per-sheet table:
+   * settings formats supported:
+   *  - legacy global: Settings!A2 = minutes
+   *  - per-sheet table:
    *      A1=LeadSheet, B1=HoldMinutes
    *      A2.. = sheetName, B2.. = minutes
    */
@@ -164,7 +161,7 @@ export class SheetsStore {
     const sheets = this.sheets();
     state.holdMinutesBySheet = new Map();
 
-    // Try table first
+    // try table first
     try {
       const res = await withRetry(() =>
         sheets.spreadsheets.values.get({
@@ -185,10 +182,10 @@ export class SheetsStore {
             state.holdMinutesBySheet.set(name, m);
           }
         }
-        // Also load legacy A2 as default if present
+        // also load legacy A2 as default if present
         const legacy = Number(rows?.[1]?.[0]);
         if (Number.isFinite(legacy) && legacy > 0 && legacy <= 1440) {
-          // Only use legacy if someone put it there intentionally; otherwise keep env default.
+          // only use legacy if someone put it there intentionally; otherwise keep env default.
         }
         return;
       }
@@ -196,7 +193,7 @@ export class SheetsStore {
       // ignore
     }
 
-    // Legacy: A2
+    // legacy: A2
     try {
       const res = await withRetry(() =>
         sheets.spreadsheets.values.get({
@@ -217,9 +214,9 @@ export class SheetsStore {
     const m = Number(minutes);
     if (!Number.isFinite(m) || m <= 0 || m > 1440) throw new Error("Invalid holdMinutes");
 
-    // If sheetName provided, use per-sheet table.
+    // if sheetName provided, use per-sheet table.
     if (sheetName) {
-      // Read existing table
+      // read existing table
       const res = await withRetry(() =>
         sheets.spreadsheets.values.get({
           spreadsheetId: this.sheetId,
@@ -230,7 +227,7 @@ export class SheetsStore {
       const h1 = String(rows?.[0]?.[0] || "").trim();
       const h2 = String(rows?.[0]?.[1] || "").trim();
 
-      // Ensure header exists
+      // ensure header exists
       if (!(h1.toLowerCase() === "leadsheet" && h2.toLowerCase() === "holdminutes")) {
         await withRetry(() =>
           sheets.spreadsheets.values.update({
@@ -242,7 +239,7 @@ export class SheetsStore {
         );
       }
 
-      // Find existing row
+      // find existing row
       let foundRow = null;
       for (let i = 1; i < rows.length; i++) {
         if (String(rows[i]?.[0] || "").trim() === sheetName) {
@@ -274,7 +271,7 @@ export class SheetsStore {
       return;
     }
 
-    // Legacy global
+    // legacy global
     await withRetry(() =>
       sheets.spreadsheets.values.update({
         spreadsheetId: this.sheetId,
@@ -286,7 +283,7 @@ export class SheetsStore {
   }
 
   /**
-   * Locks schema v2 (recommended, required for multi-sheet):
+   * locks schema v2 (recommended, required for multi-sheet):
    * A Phone
    * B LeadSheet
    * C LeadRow
@@ -316,7 +313,7 @@ export class SheetsStore {
     if (!entries.length) return;
 
     if (this.leadsNames.length > 1) {
-      // Ensure we are operating with v2 Locks schema.
+      // ensure we are operating with v2 Locks schema.
       const locksPreview = await this.getLocksAll();
       const schema = this._detectLocksSchema(locksPreview[0] || []);
       if (!schema.isV2) {
@@ -370,7 +367,7 @@ export class SheetsStore {
       let lockedUntil = found ? String(found.row?.[lockedUntilIdx] || "").trim() : "";
       const currentlyLocked = lockedUntil && Date.parse(lockedUntil) > Date.now();
 
-      // Lock if threshold reached and not already locked
+      // lock if threshold reached and not already locked
       if (!currentlyLocked && nextCount >= state.lockAfterCalls) {
         const hold = this.getHoldMinutesForSheet(leadSheet);
         lockedUntil = minutesFromNowIso(hold);
@@ -496,7 +493,7 @@ export class SheetsStore {
       if (!Number.isFinite(t)) continue;
       if (t > now) continue;
 
-      // Prefer current location from index (handles inserted/deleted rows)
+      // prefer current location from index (handles inserted/deleted rows)
       const loc = state.leadsCache.phoneToLoc.get(phone);
       const rowToUnhide = (loc && loc.sheetName === leadSheet) ? loc.rowIndex1 : storedLeadRow;
 
@@ -514,7 +511,7 @@ export class SheetsStore {
         }
       });
 
-      // Clear LockedUntil but keep CallCount and everything else
+      // clear LockedUntil but keep CallCount and everything else
       if (isV2) {
         lockUpdates.push({
           range: `${this.locksName}!E${lockRowIndex1}:G${lockRowIndex1}`,
