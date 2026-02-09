@@ -1,4 +1,4 @@
-// In-memory state for call counting, dedupe, and everything
+// memory state for call counting, dedupe, and everything
 
 import { LOCK_AFTER_CALLS } from "./config.js";
 
@@ -6,7 +6,7 @@ export const state = {
   // default hold time (minutes) if not persisted in Settings
   holdMinutes: Number(process.env.DEFAULT_HOLD_MINUTES || 60),
 
-  // Per-lead-sheet hold minutes (optional). When present, overrides holdMinutes.
+  // per-lead-sheet hold minutes (optional). When present, overrides holdMinutes.
   // key: sheetName, value: minutes
   holdMinutesBySheet: new Map(),
 
