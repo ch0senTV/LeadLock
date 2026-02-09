@@ -1,25 +1,23 @@
-// src/memory.js
-//
-// In-memory state for call counting, deduplication and caching.
+// In-memory state for call counting, dedupe, and everything
 
 import { LOCK_AFTER_CALLS } from "./config.js";
 
 export const state = {
-  // default hold time (minutes) if not persisted in Settings sheet
+  // default hold time (minutes) if not persisted in Settings
   holdMinutes: Number(process.env.DEFAULT_HOLD_MINUTES || 60),
 
   // Per-lead-sheet hold minutes (optional). When present, overrides holdMinutes.
   // key: sheetName, value: minutes
   holdMinutesBySheet: new Map(),
 
-  // phone -> increments pending (in-memory buffer)
+  // phone -> increments pending (in-memory)
   pendingIncrements: new Map(),
 
   // event dedupe (best-effort, in-memory)
   recentEventKeys: new Map(), // key => timestamp
   recentTtlMs: 10 * 60 * 1000,
 
-  // Leads cache
+  // cache
   leadsCache: {
     loadedAt: 0,
     headerMap: new Map(),
