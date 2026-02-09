@@ -408,7 +408,7 @@ export class SheetsStore {
           locksWrites.push({ range: `${this.locksName}!A:G`, values, append: true });
         }
       } else {
-        // Legacy single-sheet schema
+        // legacy single-sheet schema
         const values = [[phone, String(leadRowIndex1), String(nextCount), lockedUntil, eventId, updatedAt]];
         if (found) {
           locksWrites.push({
