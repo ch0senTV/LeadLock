@@ -90,7 +90,7 @@ function extractEventId(payload) {
 
 // webhook endpoint
 app.post("/ringcentral/webhook", requireWebhookSecret, async (req, res) => {
-  // RingCentral validation
+  // ringcentral validation
   const validationToken = req.get("Validation-Token");
   if (validationToken) {
     res.set("Validation-Token", validationToken);
