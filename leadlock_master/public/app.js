@@ -142,7 +142,7 @@ async function loadSheets() {
     const sheets = Array.isArray(data?.leadsSheets) ? data.leadsSheets : [];
     if (!sheets.length) throw new Error("No lead sheets configured");
 
-    // Restore last selected sheet if possible
+    // restore last selected sheet if possible
     const last = localStorage.getItem("lead_lock_selected_sheet") || "";
 
     leadSheetSelect.innerHTML = "";
