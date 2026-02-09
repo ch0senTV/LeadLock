@@ -1,6 +1,6 @@
 // minimal UI for changing cooldown (holdMinutes).
 //
-// The backend requires ADMIN_KEY. This UI stores it in localStorage
+// the backend requires ADMIN_KEY. This UI stores it in localStorage
 // and sends it as the `x-admin-key` header.
 
 const $ = (id) => document.getElementById(id);
