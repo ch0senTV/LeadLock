@@ -1,6 +1,4 @@
-// src/server.js
-//
-// Entry point for the lead locking server. Sets up the Express
+// entry point for the lead locking server. sets up the Express
 // application, handles RingCentral webhooks, exposes admin APIs and
 // manages timers for batching writes and unlocking expired leads.
 
@@ -58,7 +56,7 @@ function getDirection(payload) {
 }
 
 function extractPhone(payload) {
-  // Best-effort across shapes
+  // best effort across shapes
   const candidates = [
     payload?.body?.party?.to?.phoneNumber,
     payload?.body?.party?.from?.phoneNumber,
@@ -82,7 +80,7 @@ function extractPhone(payload) {
 }
 
 function extractEventId(payload) {
-  // Build a stable-ish dedupe key (best effort)
+  // built a stable-ish dedupe key 
   const sessionId = payload?.body?.telephonySessionId || payload?.telephonySessionId || payload?.uuid || payload?.id || "";
   const partyId = payload?.body?.party?.id || payload?.body?.partyId || "";
   const status = payload?.body?.party?.status?.code || payload?.body?.status?.code || "";
@@ -90,9 +88,9 @@ function extractEventId(payload) {
   return `${sessionId}|${partyId}|${status}|${ts}`;
 }
 
-// Webhook endpoint
+// webhook endpoint
 app.post("/ringcentral/webhook", requireWebhookSecret, async (req, res) => {
-  // RingCentral validation handshake
+  // RingCentral validation
   const validationToken = req.get("Validation-Token");
   if (validationToken) {
     res.set("Validation-Token", validationToken);
@@ -106,7 +104,7 @@ app.post("/ringcentral/webhook", requireWebhookSecret, async (req, res) => {
 
     const payload = req.body;
 
-    // Only ended calls count
+    // only ended calls count
     if (!isEnded(payload)) return;
 
     const dir = getDirection(payload);
@@ -120,13 +118,13 @@ app.post("/ringcentral/webhook", requireWebhookSecret, async (req, res) => {
     const eventId = extractEventId(payload);
     if (dedupeEvent(eventId)) return;
 
-    // Buffer increment; eventId is stored at flush time
+    // buffer increment; eventId is stored at flush time
     queueIncrement(phone, 1);
     state.metrics.endedCounted += 1;
 
-    // Store last seen eventId per phone in memory (so we can write it to Locks)
+    // store last seen eventId per phone in memory (so we can write it to Locks)
     // lightweight: attach to pending map by expanding value to object
-    // We'll keep it simple by tracking a separate map:
+    // we'll keep it simple by tracking a separate map:
     state._lastEventIdByPhone ??= new Map();
     state._lastEventIdByPhone.set(phone, eventId);
 
@@ -135,7 +133,7 @@ app.post("/ringcentral/webhook", requireWebhookSecret, async (req, res) => {
   }
 });
 
-// Admin API
+// admin API
 app.get("/api/status", requireAdmin, (req, res) => {
   const sheet = String(req.query.sheet || "").trim();
   const effective = sheet ? store.getHoldMinutesForSheet(sheet) : state.holdMinutes;
@@ -149,7 +147,7 @@ app.get("/api/status", requireAdmin, (req, res) => {
   });
 });
 
-// List configured lead sheet tabs (for UI dropdown)
+// list configured lead sheet tabs (for UI)
 app.get("/api/leads-sheets", requireAdmin, (req, res) => {
   res.json({
     leadsSheets: store.leadsNames,
@@ -190,7 +188,7 @@ app.post("/api/refresh-index", requireAdmin, async (req, res) => {
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 
-// Timers
+//timers
 const FLUSH_INTERVAL_MS = Number(process.env.FLUSH_INTERVAL_MS || 3000);
 const UNLOCK_SWEEP_INTERVAL_MS = Number(process.env.UNLOCK_SWEEP_INTERVAL_MS || 15000);
 const CACHE_REFRESH_INTERVAL_MS = Number(process.env.CACHE_REFRESH_INTERVAL_MS || 30000);
@@ -199,7 +197,7 @@ setInterval(async () => {
   try {
     if (state.pendingIncrements.size === 0) return;
 
-    // Build entries list
+    //build entries list
     const entries = [];
     for (const [phone, inc] of state.pendingIncrements.entries()) {
       const eventId = state._lastEventIdByPhone?.get(phone) || "";
