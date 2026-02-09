@@ -1,4 +1,4 @@
-// Minimal UI for changing cooldown (holdMinutes).
+// minimal UI for changing cooldown (holdMinutes).
 //
 // The backend requires ADMIN_KEY. This UI stores it in localStorage
 // and sends it as the `x-admin-key` header.
@@ -16,7 +16,7 @@ const current = $("current");
 const lastFlush = $("lastFlush");
 const msg = $("msg");
 
-// Metrics panel (read-only)
+// metrics panel
 const metricsUpdated = $("metricsUpdated");
 const mUptime = $("mUptime");
 const mWebhook = $("mWebhook");
@@ -192,7 +192,7 @@ async function refreshIndex() {
   }
 }
 
-// Persist admin key locally for convenience.
+// persist admin key locally for convenience.
 const LS_KEY = "lead_lock_admin_key";
 adminKeyInput.value = localStorage.getItem(LS_KEY) || "";
 
@@ -211,8 +211,8 @@ leadSheetSelect.addEventListener("change", () => {
   loadStatus();
 });
 
-// Initial load
-// Load sheet list first, then load status for selected sheet.
+// initial load
+// load sheet list first, then load status for selected sheet.
 (async () => {
   await loadSheets();
   await loadStatus();
