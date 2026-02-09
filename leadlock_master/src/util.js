@@ -1,6 +1,4 @@
-// src/util.js
-//
-// Utility functions used throughout the lead locking system. These
+// utility functions used throughout the lead locking system. These
 // helpers encapsulate common operations such as date handling,
 // phone normalisation, array chunking and retry/backoff logic.
 
@@ -41,7 +39,7 @@ export async function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
 
-// Simple exponential backoff retry for 429/5xx
+// simple exponential backoff retry for 429/5xx
 export async function withRetry(fn, { tries = 5, baseMs = 250 } = {}) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
