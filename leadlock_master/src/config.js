@@ -1,16 +1,11 @@
 // src/config.js
-//
-// Configuration values for the lead locking system. Fill in the
-// LABEL_PHONE constant with the exact header text of your phone
-// column in the leads sheet.  All other values may be customised
-// according to your needs.
-
+// Fill in the LABEL_PHONE constant with the exact header text of your phone
+// column in the leads sheet.  All other values may be customised according to your needs.
 // ===== YOU FILL THESE IN LATER =====
-
 // Leads sheet: header labels
 // Set this to the exact header text for the phone number column in
 // your leads sheet. For example, "Phone" or "Phone Number (US)". This
-// program will normalise phone numbers so minor formatting differences
+// program will normalise phone numbers so formatting differences
 // don’t matter.
 export const LABEL_PHONE = "Phone Number (US)";
 
@@ -27,8 +22,8 @@ export const LOCK_AFTER_CALLS = 2;
 // prepended. Change to your country as needed.
 export const DEFAULT_COUNTRY_CODE = "1";
 
-// RingCentral: count directions. These flags determine whether
+// RingCentral: count directions. This determines if
 // inbound or outbound calls increment the call count. Outbound is
-// usually counted; inbound is typically ignored.
+// all thats counted ; inbound is ignored but can be toggled
 export const COUNT_OUTBOUND = true;
 export const COUNT_INBOUND = false;
